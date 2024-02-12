@@ -58,9 +58,16 @@ fn main() -> Result<()> {
                              Constraint::Percentage(80),
                 ])
                 .split(area);
+
+            //Added a defaut_block for future block constructions
             let defaut_block = Block::default();
+
             frame.render_widget(textwidget, outer_border[1]);
-            frame.render_widget(defaut_block.borders(Borders::ALL).title(block::Title::from("WIP").alignment(Alignment::Center)), outer_border[0]);
+            frame.render_widget(defaut_block
+                                .borders(Borders::ALL)
+                                .title(block::Title::from("WIP")
+                                       .alignment(Alignment::Center)),
+                                       outer_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
