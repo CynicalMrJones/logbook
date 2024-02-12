@@ -8,8 +8,8 @@ use crossterm::{
     ExecutableCommand, style::Stylize,
 };
 use ratatui::{
-    prelude::{CrosstermBackend,Style, Terminal, Alignment},
-    widgets::{Block, Borders, block},
+    prelude::{CrosstermBackend,Style, Terminal, Alignment, Layout, Direction},
+    widgets::{Block, Borders, block, Paragraph}, layout::Constraint,
 };
 use std::io::{stdout, Result};
 use tui_textarea::TextArea;
@@ -50,7 +50,17 @@ fn main() -> Result<()> {
         terminal.draw(|frame| {
             let area = frame.size();
             let textwidget = text.widget();
-            frame.render_widget(textwidget, area)
+
+            let outer_border = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(vec![
+                             Constraint::Percentage(20),
+                             Constraint::Percentage(80),
+                ])
+                .split(area);
+            let defaut_block = Block::default();
+            frame.render_widget(textwidget, outer_border[1]);
+            frame.render_widget(defaut_block.borders(Borders::ALL).title(block::Title::from("WIP").alignment(Alignment::Center)), outer_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
