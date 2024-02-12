@@ -62,6 +62,7 @@ fn main() -> Result<()> {
             //Added a defaut_block for future block constructions
             let defaut_block = Block::default();
 
+            //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
             frame.render_widget(defaut_block
                                 .borders(Borders::ALL)
