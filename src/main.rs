@@ -34,7 +34,7 @@ fn main() -> Result<()> {
 
     //creating the Text box for writing in
     let mut text = TextArea::default();
-    
+
     //Layout stuff
     text.set_placeholder_style(Style::default());
     text.set_placeholder_text("Please enter what you want");
