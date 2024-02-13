@@ -9,7 +9,7 @@ use crossterm::{
 };
 use ratatui::{
     prelude::{CrosstermBackend,Style, Terminal, Alignment, Layout, Direction},
-    widgets::{Block, Borders, block, Paragraph}, layout::Constraint,
+    widgets::{Block, Borders, block, Paragraph, Wrap}, layout::Constraint,
 };
 use std::io::{stdout, Result};
 use tui_textarea::TextArea;
@@ -61,14 +61,14 @@ fn main() -> Result<()> {
 
             //Added a defaut_block for future block constructions
             let defaut_block = Block::default();
+            let default_paragraph = Paragraph::new("What if this is a really long string comprised of a long sentence which is not ok because if word wrap doesnt work this looks stupid");
 
             //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
-            frame.render_widget(defaut_block
-                                .borders(Borders::ALL)
-                                .title(block::Title::from("WIP")
-                                       .alignment(Alignment::Center)),
-                                       outer_border[0]);
+            frame.render_widget(default_paragraph.wrap(Wrap { trim: true })
+                                .block(defaut_block.borders(Borders::ALL)
+                                       .title(block::Title::from("WIP")
+                                              .alignment(Alignment::Center))), outer_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
