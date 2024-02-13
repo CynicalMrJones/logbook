@@ -61,7 +61,7 @@ fn main() -> Result<()> {
 
             //Added a defaut_block for future block constructions
             let defaut_block = Block::default();
-            let default_paragraph = Paragraph::new("What if this is a really long string comprised of a long sentence which is not ok because if word wrap doesnt work this looks stupid");
+            let default_paragraph = Paragraph::new("I don't really know what im going to put here but i think its better this way");
 
             //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
