@@ -16,6 +16,7 @@ use tui_textarea::*;
 
 use std::io::prelude::*;
 use std::io::BufWriter;
+use std::io::LineWriter;
 use std::fs::File;
 use std::path::Path;
 use chrono::prelude::*;
@@ -80,16 +81,18 @@ fn main() -> Result<()> {
                     {
                         if Path::new(&file_name).exists(){
                             let f = File::options().append(true).open(file_name)?;
-                            let mut writer = BufWriter::new(f);
+                            let mut writer = LineWriter::new(f);
                             for line in text.lines(){
                                 writer.write(line.as_bytes())?;
+                                writeln!(writer, "").unwrap();
                             }
                         }
                         else {
                             let f = File::create(file_name)?;
-                            let mut writer = BufWriter::new(f);
+                            let mut writer = LineWriter::new(f);
                             for line in text.lines(){
                                 writer.write(line.as_bytes())?;
+                                writeln!(writer, "").unwrap();
                             }
                         }
                     }
@@ -103,10 +106,10 @@ fn main() -> Result<()> {
                     key: Key::Down,
                     ..
                 } => {text.set_placeholder_text("Stop Fucking around")},
-                    input => {
-                        if text.input(input) {
-                        }
+                input => {
+                    if text.input(input) {
                     }
+                }
             }
         }
     }
@@ -114,5 +117,6 @@ fn main() -> Result<()> {
     //exiting the program
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
+    println!("Lines{:?}", text.lines());
     Ok(())
 }
