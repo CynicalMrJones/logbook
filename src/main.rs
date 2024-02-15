@@ -36,9 +36,7 @@ fn main() -> Result<()> {
     let mut text = TextArea::default();
 
     //Modifying the text area with certain qualities
-    text.set_placeholder_style(Style::default());
     text.set_placeholder_text("Please enter what you want");
-    text.set_alignment(Alignment::Center);
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
@@ -61,7 +59,7 @@ fn main() -> Result<()> {
 
             //Added a defaut_block for future block constructions
             let defaut_block = Block::default();
-            let default_paragraph = Paragraph::new("I don't really know what im going to put here but i think its better this way");
+            let default_paragraph = Paragraph::new(format!("The name of the file will be {}", file_name));
 
             //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
@@ -95,6 +93,12 @@ fn main() -> Result<()> {
                         }
                         break;
                     }
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Home{
+                    text.set_placeholder_text("Go fuck yourself");
+                }
+                if key.kind == KeyEventKind::Press && key.code == KeyCode::Down{
+                    text.set_placeholder_text("Please enter what you want");
+                }
                 text.input(key);
             }
         }
