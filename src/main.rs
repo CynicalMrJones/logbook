@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, Borders, block, Paragraph, Wrap}, layout::Constraint,
 };
 use std::io::{stdout, Result};
-use tui_textarea::TextArea;
+use tui_textarea::*;
 
 use std::io::prelude::*;
 use std::io::BufWriter;
@@ -37,6 +37,7 @@ fn main() -> Result<()> {
 
     //Modifying the text area with certain qualities
     text.set_placeholder_text("Please enter what you want");
+    text.set_style(Style::default());
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
@@ -71,35 +72,41 @@ fn main() -> Result<()> {
 
         //Apon pressing escape, close the program and write to the file
         if event::poll(std::time::Duration::from_millis(16))? {
-            if let event::Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press
-                    && key.code == KeyCode::Esc
+            match crossterm::event::read()?.into() {
+                Input {
+                    key: Key::Esc,
+                    ..
+                } => {
                     {
-                        {
-                            if Path::new(&file_name).exists(){
-                                let f = File::options().append(true).open(file_name)?;
-                                let mut writer = BufWriter::new(f);
-                                for line in text.lines(){
-                                    writer.write(line.as_bytes())?;
-                                }
-                            }
-                            else {
-                                let f = File::create(file_name)?;
-                                let mut writer = BufWriter::new(f);
-                                for line in text.lines(){
-                                    writer.write(line.as_bytes())?;
-                                }
+                        if Path::new(&file_name).exists(){
+                            let f = File::options().append(true).open(file_name)?;
+                            let mut writer = BufWriter::new(f);
+                            for line in text.lines(){
+                                writer.write(line.as_bytes())?;
                             }
                         }
-                        break;
+                        else {
+                            let f = File::create(file_name)?;
+                            let mut writer = BufWriter::new(f);
+                            for line in text.lines(){
+                                writer.write(line.as_bytes())?;
+                            }
+                        }
                     }
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Home{
-                    text.set_placeholder_text("Go fuck yourself");
-                }
-                if key.kind == KeyEventKind::Press && key.code == KeyCode::Down{
-                    text.set_placeholder_text("Please enter what you want");
-                }
-                text.input(key);
+                    break;
+                },
+                Input{
+                    key: Key::Up,
+                    ..
+                } => {text.set_placeholder_text("Fuck you")},
+                Input{
+                    key: Key::Down,
+                    ..
+                } => {text.set_placeholder_text("Stop Fucking around")},
+                    input => {
+                        if text.input(input) {
+                        }
+                    }
             }
         }
     }
