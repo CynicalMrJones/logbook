@@ -35,11 +35,19 @@ fn main() -> Result<()> {
 
     //creating the Text box for writing in
     let mut text = TextArea::default();
+    let mut text2 = TextArea::default();
 
     //Modifying the text area with certain qualities
     text.set_placeholder_text("Please enter what you want");
     text.set_style(Style::default());
     text.set_block(
+        Block::default()
+        .borders(Borders::ALL)
+        .title(block::Title::from("Captains Logbook").alignment(Alignment::Center))
+        );
+    text2.set_placeholder_text("Please enter what you want");
+    text2.set_style(Style::default());
+    text2.set_block(
         Block::default()
         .borders(Borders::ALL)
         .title(block::Title::from("Captains Logbook").alignment(Alignment::Center))
@@ -50,25 +58,19 @@ fn main() -> Result<()> {
         terminal.draw(|frame| {
             let area = frame.size();
             let textwidget = text.widget();
+            let textwidget2 = text2.widget();
 
             let outer_border = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(vec![
-                             Constraint::Percentage(20),
                              Constraint::Percentage(80),
+                             Constraint::Percentage(20),
                 ])
                 .split(area);
 
-            //Added a defaut_block for future block constructions
-            let defaut_block = Block::default();
-            let default_paragraph = Paragraph::new(format!("The name of the file will be {}", file_name));
-
             //Rendering the frames of the program
-            frame.render_widget(textwidget, outer_border[1]);
-            frame.render_widget(default_paragraph.wrap(Wrap { trim: true })
-                                .block(defaut_block.borders(Borders::ALL)
-                                       .title(block::Title::from("WIP")
-                                              .alignment(Alignment::Center))), outer_border[0]);
+            frame.render_widget(textwidget, outer_border[0]);
+            frame.render_widget(textwidget2, outer_border[1]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
@@ -83,16 +85,22 @@ fn main() -> Result<()> {
                             let f = File::options().append(true).open(file_name)?;
                             let mut writer = LineWriter::new(f);
                             for line in text.lines(){
-                                writer.write(line.as_bytes())?;
-                                writeln!(writer, "").unwrap();
+                                if line == "" {
+                                    break;
+                                }
+                                    writer.write(line.as_bytes())?;
+                                    writeln!(writer, "").unwrap();
                             }
                         }
                         else {
                             let f = File::create(file_name)?;
                             let mut writer = LineWriter::new(f);
                             for line in text.lines(){
-                                writer.write(line.as_bytes())?;
-                                writeln!(writer, "").unwrap();
+                                if line == "" {
+                                    break; 
+                                }
+                                    writer.write(line.as_bytes())?;
+                                    writeln!(writer, "").unwrap();
                             }
                         }
                     }
@@ -106,6 +114,12 @@ fn main() -> Result<()> {
                     key: Key::Down,
                     ..
                 } => {text.set_placeholder_text("Stop Fucking around")},
+                Input{
+                    key: Key::Enter,
+                    ..
+                } => {text2.set_placeholder_text(format!("{:?}", text.lines()));
+                    text.insert_newline();
+                },
                 input => {
                     if text.input(input) {
                     }
@@ -117,6 +131,6 @@ fn main() -> Result<()> {
     //exiting the program
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
-    println!("Lines{:?}", text.lines());
+    println!("{:?}",text.lines());
     Ok(())
 }
