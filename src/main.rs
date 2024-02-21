@@ -34,19 +34,11 @@ fn main() -> Result<()> {
 
     //creating the Text box for writing in
     let mut text = TextArea::default();
-    let mut text2 = TextArea::default();
 
     //Modifying the text area with certain qualities
     text.set_placeholder_text("Please enter what you want");
     text.set_style(Style::default());
     text.set_block(
-        Block::default()
-        .borders(Borders::ALL)
-        .title(block::Title::from("Captains Logbook").alignment(Alignment::Center))
-        );
-    text2.set_placeholder_text("Please enter what you want");
-    text2.set_style(Style::default());
-    text2.set_block(
         Block::default()
         .borders(Borders::ALL)
         .title(block::Title::from("Captains Logbook").alignment(Alignment::Center))
@@ -121,9 +113,7 @@ fn main() -> Result<()> {
                 Input{
                     key: Key::Enter,
                     ..
-                } => {text2.set_placeholder_text(format!("{:?}", text.lines()));
-                    text.insert_newline();
-                },
+                } => {text.insert_newline();},
                 input => {
                     if text.input(input) {
                     }
