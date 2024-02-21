@@ -1,21 +1,20 @@
 
 use crossterm::{
-    event::{self, KeyCode, KeyEventKind},
+    event::{self},
     terminal::{
         disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
         LeaveAlternateScreen,
     },
-    ExecutableCommand, style::Stylize,
+    ExecutableCommand,
 };
 use ratatui::{
-    prelude::{CrosstermBackend,Style, Terminal, Alignment, Layout, Direction},
-    widgets::{Block, Borders, block, Paragraph, Wrap}, layout::Constraint,
+    layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
+    widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
 };
 use std::io::{stdout, Result};
 use tui_textarea::*;
 
 use std::io::prelude::*;
-use std::io::BufWriter;
 use std::io::LineWriter;
 use std::fs::File;
 use std::path::Path;
@@ -58,19 +57,24 @@ fn main() -> Result<()> {
         terminal.draw(|frame| {
             let area = frame.size();
             let textwidget = text.widget();
-            let textwidget2 = text2.widget();
 
             let outer_border = Layout::default()
-                .direction(Direction::Horizontal)
+                .direction(Direction::Vertical)
                 .constraints(vec![
-                             Constraint::Percentage(80),
-                             Constraint::Percentage(20),
+                             Constraint::Percentage(10),
+                             Constraint::Percentage(90),
                 ])
                 .split(area);
 
             //Rendering the frames of the program
-            frame.render_widget(textwidget, outer_border[0]);
-            frame.render_widget(textwidget2, outer_border[1]);
+            frame.render_widget(textwidget, outer_border[1]);
+            frame.render_widget(Paragraph::new("This is a test")
+                                .wrap(Wrap { trim: (true) })
+                                .alignment(Alignment::Center)
+                                .block(Block::default()
+                                       .title("Test")
+                                       .title_alignment(Alignment::Center)
+                                       .borders(Borders::ALL)), outer_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
