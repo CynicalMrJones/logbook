@@ -8,6 +8,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{
+    style::Color,
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
     widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
 };
@@ -37,6 +38,7 @@ fn main() -> Result<()> {
     let mut text = TextArea::default();
 
     //Modifying the text area with certain qualities
+    text.set_selection_style(Style::default().bg(Color::LightBlue));
     text.set_placeholder_text("Please enter what you want");
     text.set_style(Style::default());
     text.set_block(
@@ -85,8 +87,8 @@ fn main() -> Result<()> {
                                 if line == "" {
                                     break;
                                 }
-                                    writer.write(line.as_bytes())?;
-                                    writeln!(writer, "").unwrap();
+                                writer.write(line.as_bytes())?;
+                                writeln!(writer, "").unwrap();
                             }
                         }
                         else {
@@ -96,8 +98,8 @@ fn main() -> Result<()> {
                                 if line == "" {
                                     break; 
                                 }
-                                    writer.write(line.as_bytes())?;
-                                    writeln!(writer, "").unwrap();
+                                writer.write(line.as_bytes())?;
+                                writeln!(writer, "").unwrap();
                             }
                         }
                     }
@@ -106,15 +108,39 @@ fn main() -> Result<()> {
                 Input{
                     key: Key::Up,
                     ..
-                } => {text.set_placeholder_text("Fuck you")},
+                } => {text.move_cursor(CursorMove::Up)},
                 Input{
                     key: Key::Down,
                     ..
-                } => {text.set_placeholder_text("Stop Fucking around")},
+                } => {text.move_cursor(CursorMove::Down)},
+                Input{
+                    key: Key::Right,
+                    ..
+                } => {text.move_cursor(CursorMove::Forward)},
+                Input{
+                    key: Key::Left,
+                    ..
+                } => {text.move_cursor(CursorMove::Back)},
                 Input{
                     key: Key::Enter,
                     ..
                 } => {text.insert_newline();},
+                Input{
+                    key: Key::Char('c'),
+                    ctrl: true,
+                    ..
+                } => {text.copy();},
+                Input{
+                    key: Key::Char('v'),
+                    ctrl: true,
+                    ..
+                } => {text.paste();},
+                Input{
+                    key: Key::Char('V'),
+                    shift: true,
+                    ..
+                } => {text.start_selection();},
+
                 input => {
                     if text.input(input) {
                     }
