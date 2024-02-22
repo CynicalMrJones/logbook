@@ -25,6 +25,7 @@ fn main() -> Result<()> {
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
+    let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
 
     //Entering the alternate screen 
     stdout().execute(EnterAlternateScreen)?;
@@ -41,7 +42,7 @@ fn main() -> Result<()> {
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
-        .title(block::Title::from("Captains Logbook").alignment(Alignment::Center))
+        .title(block::Title::from(format!("Logbook entry {}", true_date)).alignment(Alignment::Center))
         );
 
     //main loop that the program runs
@@ -60,11 +61,11 @@ fn main() -> Result<()> {
 
             //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
-            frame.render_widget(Paragraph::new("This is a test")
+            frame.render_widget(Paragraph::new(format!("Good afternoon Captain, todays date is {}", true_date))
                                 .wrap(Wrap { trim: (true) })
                                 .alignment(Alignment::Center)
                                 .block(Block::default()
-                                       .title("Test")
+                                       .title("Captain's Log")
                                        .title_alignment(Alignment::Center)
                                        .borders(Borders::ALL)), outer_border[0]);
         })?;
