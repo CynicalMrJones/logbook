@@ -23,6 +23,11 @@ use chrono::prelude::*;
 
 fn main() -> Result<()> {
 
+    let mut settings = File::open("settings")?; 
+    let mut buf = String::new();
+    settings.read_to_string(&mut buf)?;
+    let number: i32 = buf.trim().parse().unwrap();
+
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
@@ -44,7 +49,7 @@ fn main() -> Result<()> {
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
-        .title(block::Title::from(format!("Logbook entry {}", true_date)).alignment(Alignment::Center))
+        .title(block::Title::from(format!("Logbook entry {}", number)).alignment(Alignment::Center))
         );
 
     //main loop that the program runs
@@ -152,6 +157,7 @@ fn main() -> Result<()> {
     //exiting the program
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
-    println!("{:?}",text.lines());
+    println!("{}", number);
+    //println!("{:?}",text.lines());
     Ok(())
 }
