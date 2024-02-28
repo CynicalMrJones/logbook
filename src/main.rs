@@ -12,26 +12,45 @@ use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
     widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
 };
-use std::io::{stdout, Result};
+use std::{fs::OpenOptions, io::{stdout, Result}};
 use tui_textarea::*;
 
 use std::io::prelude::*;
 use std::io::LineWriter;
+use std::io::BufReader;
 use std::fs::File;
 use std::path::Path;
 use chrono::prelude::*;
 
 fn main() -> Result<()> {
 
-    let mut settings = File::open("settings")?; 
-    let mut buf = String::new();
-    settings.read_to_string(&mut buf)?;
-    let number: i32 = buf.trim().parse().unwrap();
-
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
     let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
+
+    //This is all a big stinky hack. This feels wrong in so many ways 
+    //Please find a way to write this better
+    let read_settings = OpenOptions::new()
+        .read(true)
+        .open("settings")
+        .unwrap();
+    let mut reader = BufReader::new(&read_settings);
+    let mut buf = String::new();
+    reader.read_to_string(&mut buf)?;
+    let number: i32 = buf.trim().parse().unwrap();
+    let mut entry_number = number;
+
+    if !Path::new(&file_name).exists(){
+        let new_number = number + 1;
+        entry_number = new_number;
+        let mut write_settings = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open("settings")
+            .unwrap();
+        write!(write_settings, "{}", new_number)?;
+    }
 
     //Entering the alternate screen 
     stdout().execute(EnterAlternateScreen)?;
@@ -49,7 +68,7 @@ fn main() -> Result<()> {
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
-        .title(block::Title::from(format!("Logbook entry {}", number)).alignment(Alignment::Center))
+        .title(block::Title::from(format!("Logbook entry {}", &entry_number)).alignment(Alignment::Center))
         );
 
     //main loop that the program runs
@@ -157,7 +176,5 @@ fn main() -> Result<()> {
     //exiting the program
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
-    println!("{}", number);
-    //println!("{:?}",text.lines());
     Ok(())
 }
