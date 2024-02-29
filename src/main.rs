@@ -38,18 +38,16 @@ fn main() -> Result<()> {
     let mut reader = BufReader::new(&read_settings);
     let mut buf = String::new();
     reader.read_to_string(&mut buf)?;
-    let number: i32 = buf.trim().parse().unwrap();
-    let mut entry_number = number;
+    let mut number: i32 = buf.trim().parse().unwrap();
 
     if !Path::new(&file_name).exists(){
-        let new_number = number + 1;
-        entry_number = new_number;
+        number += 1;
         let mut write_settings = OpenOptions::new()
             .write(true)
             .truncate(true)
             .open("settings")
             .unwrap();
-        write!(write_settings, "{}", new_number)?;
+        write!(write_settings, "{}", number)?;
     }
 
     //Entering the alternate screen 
@@ -68,7 +66,7 @@ fn main() -> Result<()> {
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
-        .title(block::Title::from(format!("Logbook entry {}", &entry_number)).alignment(Alignment::Center))
+        .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
         );
 
     //main loop that the program runs
