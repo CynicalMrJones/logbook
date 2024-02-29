@@ -28,6 +28,7 @@ fn main() -> Result<()> {
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
     let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
+    let mut text = TextArea::default();
 
     //This is all a big stinky hack. This feels wrong in so many ways 
     //Please find a way to write this better
@@ -50,6 +51,18 @@ fn main() -> Result<()> {
         write!(write_settings, "{}", number)?;
     }
 
+    if Path::new(&file_name).exists() {
+        let read_file = OpenOptions::new()
+            .read(true)
+            .open(&file_name)
+            .unwrap();
+        let mut read_file = BufReader::new(&read_file);
+        let mut file_buf = String::new();
+        read_file.read_to_string(&mut file_buf)?;
+        text.insert_str(file_buf);
+    }
+
+
     //Entering the alternate screen 
     stdout().execute(EnterAlternateScreen)?;
     enable_raw_mode()?;
@@ -57,7 +70,6 @@ fn main() -> Result<()> {
     terminal.clear()?;
 
     //creating the Text box for writing in
-    let mut text = TextArea::default();
 
     //Modifying the text area with certain qualities
     text.set_selection_style(Style::default().bg(Color::LightBlue));
