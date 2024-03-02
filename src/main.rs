@@ -12,7 +12,6 @@ use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
     widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
 };
-use core::panic;
 use std::{fs::OpenOptions, io::{stdout, Result}};
 use tui_textarea::*;
 
