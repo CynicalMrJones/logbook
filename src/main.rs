@@ -12,9 +12,11 @@ use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
     widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
 };
+use core::panic;
 use std::{fs::OpenOptions, io::{stdout, Result}};
 use tui_textarea::*;
 
+use std::fs;
 use std::io::prelude::*;
 use std::io::LineWriter;
 use std::io::BufReader;
@@ -24,44 +26,48 @@ use chrono::prelude::*;
 
 fn main() -> Result<()> {
 
+    if !Path::new("/home/juicy/Documents/logbook/").exists() {
+        fs::create_dir("/home/juicy/Documents/logbook").expect("fuck");
+    }
+
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
     let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
+    let file_string = format!("/home/juicy/Documents/logbook/{}", file_name);
     let mut text = TextArea::default();
 
     //This is all a big stinky hack. This feels wrong in so many ways 
     //Please find a way to write this better
     let read_settings = OpenOptions::new()
         .read(true)
-        .open("settings")
+        .open("/home/juicy/Documents/logbook/settings")
         .unwrap();
     let mut reader = BufReader::new(&read_settings);
     let mut buf = String::new();
     reader.read_to_string(&mut buf)?;
     let mut number: i32 = buf.trim().parse().unwrap();
 
-    if !Path::new(&file_name).exists(){
+    if !Path::new(&file_string).exists(){
         number += 1;
         let mut write_settings = OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open("settings")
+            .open("/home/juicy/Documents/logbook/settings")
             .unwrap();
         write!(write_settings, "{}", number)?;
     }
 
-    if Path::new(&file_name).exists() {
+    if Path::new(&file_string).exists() {
         let read_file = OpenOptions::new()
             .read(true)
-            .open(&file_name)
+            .open(&file_string)
             .unwrap();
         let mut read_file = BufReader::new(&read_file);
         let mut file_buf = String::new();
         read_file.read_to_string(&mut file_buf)?;
         text.insert_str(file_buf);
     }
-
 
     //Entering the alternate screen 
     stdout().execute(EnterAlternateScreen)?;
@@ -114,11 +120,11 @@ fn main() -> Result<()> {
                     ..
                 } => {
                     {
-                        if Path::new(&file_name).exists(){
+                        if Path::new(&file_string).exists(){
                             let mut file_writer= OpenOptions::new()
                                 .write(true)
                                 .truncate(true)
-                                .open(&file_name)
+                                .open(&file_string)
                                 .unwrap();
                             for line in text.lines() {
                                 write!(file_writer, "{}", line)?;
@@ -126,7 +132,7 @@ fn main() -> Result<()> {
                             }
                         }
                         else {
-                            let f = File::create(file_name)?;
+                            let f = File::create(&file_string)?;
                             let mut writer = LineWriter::new(f);
                             for line in text.lines(){
                                 if line == "" {
