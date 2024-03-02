@@ -115,14 +115,14 @@ fn main() -> Result<()> {
                 } => {
                     {
                         if Path::new(&file_name).exists(){
-                            let f = File::options().append(true).open(file_name)?;
-                            let mut writer = LineWriter::new(f);
-                            for line in text.lines(){
-                                if line == "" {
-                                    break;
-                                }
-                                writer.write(line.as_bytes())?;
-                                writeln!(writer, "").unwrap();
+                            let mut file_writer= OpenOptions::new()
+                                .write(true)
+                                .truncate(true)
+                                .open(&file_name)
+                                .unwrap();
+                            for line in text.lines() {
+                                write!(file_writer, "{}", line)?;
+                                writeln!(file_writer, "")?;
                             }
                         }
                         else {
