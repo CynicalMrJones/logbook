@@ -7,6 +7,7 @@ use crossterm::{
     },
     ExecutableCommand,
 };
+use greeting::greeting;
 use ratatui::{
     style::Color,
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
@@ -24,7 +25,11 @@ use std::path::Path;
 use chrono::prelude::*;
 use directories::UserDirs;
 
+mod greeting;
+
 fn main() -> Result<()> {
+
+    let message = greeting();
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
@@ -37,7 +42,6 @@ fn main() -> Result<()> {
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
-    let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
     let file_string = format!("{}/{}",&home_path, &file_name);
     let mut text = TextArea::default();
 
@@ -79,8 +83,6 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    //creating the Text box for writing in
-
     //Modifying the text area with certain qualities
     text.set_selection_style(Style::default().bg(Color::LightBlue));
     text.set_placeholder_text("Please enter what you want");
@@ -107,7 +109,7 @@ fn main() -> Result<()> {
 
             //Rendering the frames of the program
             frame.render_widget(textwidget, outer_border[1]);
-            frame.render_widget(Paragraph::new(format!("Good afternoon Captain, todays date is {}", true_date))
+            frame.render_widget(Paragraph::new(format!("{}", message))
                                 .wrap(Wrap { trim: (true) })
                                 .alignment(Alignment::Center)
                                 .block(Block::default()
