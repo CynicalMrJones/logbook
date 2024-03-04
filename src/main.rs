@@ -22,25 +22,30 @@ use std::io::BufReader;
 use std::fs::File;
 use std::path::Path;
 use chrono::prelude::*;
+use directories::UserDirs;
 
 fn main() -> Result<()> {
 
-    if !Path::new("/home/juicy/Documents/logbook/").exists() {
-        fs::create_dir("/home/juicy/Documents/logbook").expect("fuck");
+    let path = UserDirs::new().unwrap();
+    let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
+    let settings_path = format!("{}/Documents/logbook/settings", path.home_dir().to_string_lossy());
+
+    if !Path::new(&home_path).exists() {
+        fs::create_dir(&home_path).expect("fuck");
     }
 
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
     let true_date = format!("{}-{}-{}", date.month(), date.day(), date.year());
-    let file_string = format!("/home/juicy/Documents/logbook/{}", file_name);
+    let file_string = format!("{}/{}",&home_path, &file_name);
     let mut text = TextArea::default();
 
     //This is all a big stinky hack. This feels wrong in so many ways 
     //Please find a way to write this better
     let read_settings = OpenOptions::new()
         .read(true)
-        .open("/home/juicy/Documents/logbook/settings")
+        .open(&settings_path)
         .unwrap();
     let mut reader = BufReader::new(&read_settings);
     let mut buf = String::new();
@@ -52,7 +57,7 @@ fn main() -> Result<()> {
         let mut write_settings = OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open("/home/juicy/Documents/logbook/settings")
+            .open(&settings_path)
             .unwrap();
         write!(write_settings, "{}", number)?;
     }
