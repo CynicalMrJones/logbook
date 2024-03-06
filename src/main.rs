@@ -122,7 +122,8 @@ fn main() -> Result<()> {
         if event::poll(std::time::Duration::from_millis(16))? {
             match crossterm::event::read()?.into() {
                 Input {
-                    key: Key::Esc,
+                    key: Key::Char('s'),
+                    ctrl: true,
                     ..
                 } => {
                     {
