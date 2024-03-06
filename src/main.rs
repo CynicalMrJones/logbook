@@ -172,18 +172,22 @@ fn main() -> Result<()> {
                     ..
                 } => {text.insert_newline();},
                 Input{
-                    key: Key::Char('c'),
+                    key: Key::Char('u'),
                     ctrl: true,
                     ..
-                } => {text.copy();},
+                } => {text.move_cursor(CursorMove::Up);
+                    text.move_cursor(CursorMove::End)
+                },
                 Input{
-                    key: Key::Char('v'),
+                    key: Key::Char('d'),
                     ctrl: true,
                     ..
-                } => {text.paste();},
+                } => {text.move_cursor(CursorMove::Down);
+                    text.move_cursor(CursorMove::End)
+                },
                 Input{
                     key: Key::Char('V'),
-                    shift: true,
+                    alt: true,
                     ..
                 } => {text.start_selection();},
 
