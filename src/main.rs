@@ -9,9 +9,7 @@ use crossterm::{
 };
 use greeting::greeting;
 use ratatui::{
-    style::Color,
-    layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal},
-    widgets::{block::{self}, Block, Borders, Paragraph, Wrap}
+    layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Color, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap}
 };
 use std::{fs::OpenOptions, io::{stdout, Result}};
 use tui_textarea::*;
@@ -86,7 +84,7 @@ fn main() -> Result<()> {
     //Modifying the text area with certain qualities
     text.set_selection_style(Style::default().bg(Color::LightBlue));
     text.set_placeholder_text("Please enter what you want");
-    text.set_style(Style::default());
+    text.set_cursor_line_style(Style::default().not_underlined().not_hidden());
     text.set_block(
         Block::default()
         .borders(Borders::ALL)
