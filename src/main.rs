@@ -178,6 +178,11 @@ fn main() -> Result<()> {
                     text.move_cursor(CursorMove::End)
                 },
                 Input{
+                    key: Key::Char('e'),
+                    ctrl: true,
+                    ..
+                } => {text.move_cursor(CursorMove::End)},
+                Input{
                     key: Key::Char('d'),
                     ctrl: true,
                     ..
