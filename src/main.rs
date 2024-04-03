@@ -35,6 +35,7 @@ fn main() -> Result<()> {
 
     if !Path::new(&home_path).exists() {
         fs::create_dir(&home_path).expect("fuck");
+        File::create(format!("{}",&settings_path))?;
     }
 
     //grabbing the date for the file name
