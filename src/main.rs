@@ -7,6 +7,7 @@ use crossterm::{
     },
     ExecutableCommand,
 };
+use file_list::file_list;
 use greeting::greeting;
 use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Color, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap}
@@ -23,11 +24,14 @@ use std::path::Path;
 use chrono::prelude::*;
 use directories::UserDirs;
 
+mod file_list;
 mod greeting;
 
 fn main() -> Result<()> {
 
     let message = greeting();
+    let files = file_list();
+    let list: String = files.join("\n");
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
@@ -84,7 +88,7 @@ fn main() -> Result<()> {
 
     //Modifying the text area with certain qualities
     text.set_selection_style(Style::default().bg(Color::LightBlue));
-    text.set_placeholder_text("Please enter what you want");
+    text.set_placeholder_text("Talk to me skipps");
     text.set_cursor_line_style(Style::default().not_underlined().not_hidden());
     text.set_block(
         Block::default()
@@ -95,6 +99,7 @@ fn main() -> Result<()> {
     //main loop that the program runs
     loop {
         terminal.draw(|frame| {
+
             let area = frame.size();
             let textwidget = text.widget();
 
@@ -106,8 +111,15 @@ fn main() -> Result<()> {
                 ])
                 .split(area);
 
+            let inner_border = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints(vec![
+                             Constraint::Percentage(20),
+                             Constraint::Percentage(80),
+                ]).split(outer_border[1]);
+
             //Rendering the frames of the program
-            frame.render_widget(textwidget, outer_border[1]);
+            frame.render_widget(textwidget, inner_border[1]);
             frame.render_widget(Paragraph::new(format!("{}", message))
                                 .wrap(Wrap { trim: (true) })
                                 .alignment(Alignment::Center)
@@ -115,6 +127,13 @@ fn main() -> Result<()> {
                                        .title("Captain's Log")
                                        .title_alignment(Alignment::Center)
                                        .borders(Borders::ALL)), outer_border[0]);
+            frame.render_widget(Paragraph::new(format!("{}", &list))
+                                .wrap(Wrap { trim: (true) })
+                                .alignment(Alignment::Center)
+                                .block(Block::default()
+                                       .title("Previous files")
+                                       .title_alignment(Alignment::Center)
+                                       .borders(Borders::ALL)), inner_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
