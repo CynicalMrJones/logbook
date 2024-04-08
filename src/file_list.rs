@@ -1,11 +1,14 @@
 
 use core::str;
 use std::fs;
+use directories::UserDirs;
 
 pub fn file_list() -> Vec<String> {
+    let path = UserDirs::new().unwrap();
+    let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
     let mut array:Vec<String> = Vec::new();
 
-    for file in fs::read_dir("/home/juicy/Documents/logbook/").unwrap() {
+    for file in fs::read_dir(&home_path).unwrap() {
         array.push(file.unwrap().file_name().into_string().expect("fuck"));
     }
 
