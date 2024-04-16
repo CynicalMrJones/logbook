@@ -1,4 +1,8 @@
 
+use std::fs::OpenOptions;
+use std::path::Path;
+use std::io::Read;
+use std::io::BufReader;
 use core::str;
 use std::fs;
 use directories::UserDirs;
@@ -33,4 +37,49 @@ pub fn file_list() -> Vec<String> {
         date_tuple_a.cmp(&date_tuple_b)
     });
     return array;
+}
+
+pub fn file_reader(file_to_grab: String) ->  String {
+    //1) read all the files into a vec of strings (check)
+    //2) iterate through the array and fine the file name that matches with an entry in the vec of
+    //   strings
+    //3) return the string and write the file into another vec of strings
+    //4) return that vec of strings
+    let path = UserDirs::new().unwrap();
+    let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
+    let path_file = format!("{}/{}", &home_path, &file_to_grab);
+    let mut array:Vec<String> = Vec::new();
+
+    if !Path::new(&path_file).exists(){
+        return "error".to_string();
+    }
+
+    for file in fs::read_dir(&home_path).unwrap() {
+        array.push(file.unwrap().file_name().into_string().expect("fuck"));
+    }
+    array.sort();
+    array.remove(array.len() - 1);
+
+    let mut answer = String::new();
+    for entry in array {
+       if entry.to_string() == file_to_grab {
+           answer = entry.to_string();
+       }
+    }
+
+    let file_path = format!("{}/{}", home_path, answer);
+    
+    if !Path::new(&file_path).exists(){
+        return "error".to_string();
+    }
+    else{
+        let read_file = OpenOptions::new()
+            .read(true)
+            .open(&file_path)
+            .unwrap();
+        let mut read_file = BufReader::new(&read_file);
+        let mut file_buf = String::new();
+        read_file.read_to_string(&mut file_buf).expect("File not found");
+        return file_buf
+    }
 }

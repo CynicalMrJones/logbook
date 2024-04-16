@@ -7,7 +7,7 @@ use crossterm::{
     },
     ExecutableCommand,
 };
-use file_list::file_list;
+use file_list::{file_list, file_reader};
 use greeting::greeting;
 use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Color, Styled, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap}
@@ -30,6 +30,7 @@ mod greeting;
 
 //This function sets the active textarea configuration 
 fn active(textarea: &mut TextArea<'_>){
+    textarea.set_style(Style::default().white());
     textarea.set_block(Block::default()
                        .set_style(Style::default())
                        .borders(Borders::ALL))
@@ -38,6 +39,18 @@ fn active(textarea: &mut TextArea<'_>){
 //This function sets the inactive textarea configuration 
 fn inactive(textarea: &mut TextArea<'_>){
     textarea.set_block(Block::default().borders(Borders::ALL));
+    textarea.set_style(Style::default().dark_gray())
+}
+
+fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
+    textarea.set_selection_style(Style::default().bg(Color::LightBlue));
+    textarea.set_placeholder_text("Talk to me skipps");
+    textarea.set_cursor_line_style(Style::default().not_underlined().not_hidden());
+    textarea.set_block(
+        Block::default()
+        .borders(Borders::ALL)
+        .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
+        );
 }
 
 fn main() -> Result<()> {
@@ -63,6 +76,7 @@ fn main() -> Result<()> {
     //Create both TextArea's here
     //editors[0] is the main and editors[1] is the "search bar"
     let mut editors = [TextArea::default(), TextArea::default()];
+
 
     //This is all a big stinky hack. This feels wrong in so many ways 
     //Please find a way to write this better
@@ -124,6 +138,13 @@ fn main() -> Result<()> {
 
             //setting up things for the basic layout of it all
             let area = frame.size();
+            let previous_file_paragraph = Paragraph::new(format!("{}", &list))
+                .wrap(Wrap { trim: (true) })
+                .alignment(Alignment::Center)
+                .block(Block::default()
+                       .title("Previous files")
+                       .title_alignment(Alignment::Center)
+                       .borders(Borders::ALL));
 
             let outer_border = Layout::default()
                 .direction(Direction::Vertical)
@@ -148,6 +169,7 @@ fn main() -> Result<()> {
                 ])
                 .split(inner_border[0]);
 
+
             //Rendering the frames of the program
             frame.render_widget(editors[1].widget(), weird_border[1]);
             frame.render_widget(editors[0].widget(), inner_border[1]);
@@ -159,13 +181,7 @@ fn main() -> Result<()> {
                                        .title_alignment(Alignment::Center)
                                        .borders(Borders::ALL)), outer_border[0]);
 
-            frame.render_widget(Paragraph::new(format!("{}", &list))
-                                .wrap(Wrap { trim: (true) })
-                                .alignment(Alignment::Center)
-                                .block(Block::default()
-                                       .title("Previous files")
-                                       .title_alignment(Alignment::Center)
-                                       .borders(Borders::ALL)), inner_border[0]);
+            frame.render_widget(previous_file_paragraph, inner_border[0]);
         })?;
 
         //Apon pressing escape, close the program and write to the file
@@ -178,15 +194,7 @@ fn main() -> Result<()> {
                 } => {
                     {
                         if Path::new(&file_string).exists(){
-                            let mut file_writer= OpenOptions::new()
-                                .write(true)
-                                .truncate(true)
-                                .open(&file_string)
-                                .unwrap();
-                            for line in editors[0].lines() {
-                                write!(file_writer, "{}", line)?;
-                                writeln!(file_writer, "")?;
-                            }
+                            save(&file_string, editors[0].lines().to_vec())?;
                         }
                         else {
                             let f = File::create(&file_string)?;
@@ -226,14 +234,23 @@ fn main() -> Result<()> {
                         editors[0].insert_newline();
                     }
                     else {
-                        editors[1].delete_line_by_head();
-                        which = (which+1)%2;
-                        active(&mut editors[which]);
-                        editors[0].set_block(
-                            Block::default()
-                            .borders(Borders::ALL)
-                            .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
-                            );
+                        let file_name2 = file_reader(editors[1].lines()[0].clone());
+                        if file_name2 != "error".to_string() {
+                            editors[1].delete_line_by_head();
+                            which = (which+1)%2;
+                            active(&mut editors[which]);
+                            save(&file_string, editors[0].lines().to_vec())?;
+                            editors[0] = TextArea::default();
+                            set_editors_style(&mut editors[0], number);
+                            editors[0].insert_str(&file_name2);
+                        }
+                        else {
+                            active(&mut editors[0]);
+                            editors[1].delete_line_by_head();
+                            set_editors_style(&mut editors[0], number);
+                            editors[1].insert_str(&file_name2);
+                            which = (which+1)%2;
+                        }
                     }
                 },
                 Input{
@@ -258,10 +275,13 @@ fn main() -> Result<()> {
                     editors[0].move_cursor(CursorMove::End)
                 },
                 Input{
-                    key: Key::Char('V'),
+                    key: Key::Char('a'),
                     alt: true,
                     ..
-                } => {editors[0].start_selection();},
+                } => {
+                    editors[0] = TextArea::default();
+                    set_editors_style(&mut editors[0], number);
+                },
                 Input{
                     key: Key::Char('t'),
                     ctrl: true,
@@ -275,6 +295,7 @@ fn main() -> Result<()> {
                         .borders(Borders::ALL)
                         .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
                         );
+                    editors[1].delete_line_by_head();
                 },
 
                 input => {
@@ -288,5 +309,18 @@ fn main() -> Result<()> {
     //exiting the program
     stdout().execute(LeaveAlternateScreen)?;
     disable_raw_mode()?;
+    Ok(())
+}
+
+fn save(file_path: &String, buffer: Vec<String>) -> Result<()> {
+    let mut file_writer= OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(&file_path)
+        .unwrap();
+    for line in buffer {
+        write!(file_writer, "{}", line)?;
+        writeln!(file_writer, "")?;
+    }
     Ok(())
 }
