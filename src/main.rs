@@ -47,7 +47,7 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
     textarea.set_placeholder_text("Talk to me skipps");
     textarea.set_cursor_line_style(Style::default().not_underlined().not_hidden());
     textarea.set_block(
-        Block::default()
+        Block::default().set_style(Style::default().white())
         .borders(Borders::ALL)
         .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
         );
@@ -126,7 +126,7 @@ fn main() -> Result<()> {
     editors[0].set_placeholder_text("Talk to me skipps");
     editors[0].set_cursor_line_style(Style::default().not_underlined().not_hidden());
     editors[0].set_block(
-        Block::default()
+        Block::default().set_style(Style::default().white())
         .borders(Borders::ALL)
         .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
         );
@@ -141,7 +141,7 @@ fn main() -> Result<()> {
             let previous_file_paragraph = Paragraph::new(format!("{}", &list))
                 .wrap(Wrap { trim: (true) })
                 .alignment(Alignment::Center)
-                .block(Block::default()
+                .block(Block::default().set_style(Style::default().white())
                        .title("Previous files")
                        .title_alignment(Alignment::Center)
                        .borders(Borders::ALL));
@@ -176,7 +176,7 @@ fn main() -> Result<()> {
             frame.render_widget(Paragraph::new(format!("{}", message))
                                 .wrap(Wrap { trim: (true) })
                                 .alignment(Alignment::Center)
-                                .block(Block::default()
+                                .block(Block::default().set_style(Style::default().white())
                                        .title("Captain's Log")
                                        .title_alignment(Alignment::Center)
                                        .borders(Borders::ALL)), outer_border[0]);
