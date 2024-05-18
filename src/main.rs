@@ -56,7 +56,10 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
-    let files = file_list();
+    let mut files = file_list();
+    if files.len() > 26 {
+        files.remove(0);
+    }
     let list: String = files.join("\n");
 
     let path = UserDirs::new().unwrap();
