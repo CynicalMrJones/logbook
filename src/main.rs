@@ -10,7 +10,7 @@ use crossterm::{
 use file_list::{file_list, file_reader};
 use greeting::greeting;
 use ratatui::{
-    layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Color, Styled, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap}
+    layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Modifier, Color, Styled, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap, List, ListState}
 };
 use std::{fs::OpenOptions, io::{stdout, Result}};
 use tui_textarea::*;
@@ -56,11 +56,8 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
-    let mut files = file_list();
-    if files.len() > 26 {
-        files.remove(0);
-    }
-    let list: String = files.join("\n");
+    let files = file_list();
+    //let list: String = files.join("\n");
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
@@ -124,6 +121,10 @@ fn main() -> Result<()> {
     active(&mut editors[0]);
     inactive(&mut editors[1]);
 
+    let mut state = ListState::default();
+    let mut list_item = files.len()-1;
+    state.select(Some(files.len()-1));
+
     //some basic configuration
     editors[0].set_selection_style(Style::default().bg(Color::LightBlue));
     editors[0].set_placeholder_text("Talk to me skipps");
@@ -141,13 +142,14 @@ fn main() -> Result<()> {
 
             //setting up things for the basic layout of it all
             let area = frame.size();
-            let previous_file_paragraph = Paragraph::new(format!("{}", &list))
-                .wrap(Wrap { trim: (true) })
-                .alignment(Alignment::Center)
-                .block(Block::default().set_style(Style::default().white())
-                       .title("Previous files")
-                       .title_alignment(Alignment::Center)
-                       .borders(Borders::ALL));
+
+            let list2 = List::new(files.clone())
+                .block(Block::default().title("List").borders(Borders::ALL).title_alignment(Alignment::Center))
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">>")
+                .repeat_highlight_symbol(true)
+                .scroll_padding(0);
+
 
             let outer_border = Layout::default()
                 .direction(Direction::Vertical)
@@ -177,14 +179,14 @@ fn main() -> Result<()> {
             frame.render_widget(editors[1].widget(), weird_border[1]);
             frame.render_widget(editors[0].widget(), inner_border[1]);
             frame.render_widget(Paragraph::new(format!("{}", message))
-                                .wrap(Wrap { trim: (true) })
-                                .alignment(Alignment::Center)
-                                .block(Block::default().set_style(Style::default().white())
-                                       .title("Captain's Log")
-                                       .title_alignment(Alignment::Center)
-                                       .borders(Borders::ALL)), outer_border[0]);
+                .wrap(Wrap { trim: (true) })
+                .alignment(Alignment::Center)
+                .block(Block::default().set_style(Style::default().white())
+                    .title("Captain's Log")
+                    .title_alignment(Alignment::Center)
+                    .borders(Borders::ALL)), outer_border[0]);
 
-            frame.render_widget(previous_file_paragraph, inner_border[0]);
+            frame.render_stateful_widget(list2, weird_border[0], &mut state)
         })?;
 
         //Apon pressing escape, close the program and write to the file
@@ -216,11 +218,25 @@ fn main() -> Result<()> {
                 Input{
                     key: Key::Up,
                     ..
-                } => {editors[0].move_cursor(CursorMove::Up)},
+                } => {
+                    if list_item == 0 {
+                        state.select(Some(list_item));
+                    }
+                    else {
+                        list_item -= 1;
+                        state.select(Some(list_item))
+                    }
+                },
                 Input{
                     key: Key::Down,
                     ..
-                } => {editors[0].move_cursor(CursorMove::Down)},
+                } => {
+                    list_item += 1;
+                    if list_item >= files.len() {
+                        list_item -= 1;
+                    }
+                    state.select(Some(list_item))
+                },
                 Input{
                     key: Key::Right,
                     ..
