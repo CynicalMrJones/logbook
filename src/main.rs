@@ -117,8 +117,6 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    //set the active and inactive textareas and a counter to keep track which_editor is active
-    let mut which_editor = 0;
     active(&mut editors[0]);
     inactive(&mut editors[1]);
 
