@@ -56,8 +56,7 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
-    let files = file_list();
-    //let list: String = files.join("\n");
+    let list_of_files = file_list();
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
@@ -71,7 +70,9 @@ fn main() -> Result<()> {
     //grabbing the date for the file name
     let date = Utc::now();
     let file_name = format!("{}-{}-{}.txt", date.month(), date.day(), date.year());
-    let file_string = format!("{}/{}",&home_path, &file_name);
+    let file_path = format!("{}/{}",&home_path, &file_name);
+    let mut current_file_name;
+    let mut current_file_path = file_path.clone();
 
     //Create both TextArea's here
     //editors[0] is the main and editors[1] is the "search bar"
@@ -89,7 +90,7 @@ fn main() -> Result<()> {
     reader.read_to_string(&mut buf)?;
     let mut number: i32 = buf.trim().parse().unwrap();
 
-    if !Path::new(&file_string).exists(){
+    if !Path::new(&file_path).exists(){
         number += 1;
         let mut write_settings = OpenOptions::new()
             .write(true)
@@ -99,10 +100,10 @@ fn main() -> Result<()> {
         write!(write_settings, "{}", number)?;
     }
 
-    if Path::new(&file_string).exists() {
+    if Path::new(&file_path).exists() {
         let read_file = OpenOptions::new()
             .read(true)
-            .open(&file_string)
+            .open(&file_path)
             .unwrap();
         let mut read_file = BufReader::new(&read_file);
         let mut file_buf = String::new();
@@ -116,14 +117,14 @@ fn main() -> Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     terminal.clear()?;
 
-    //set the active and inactive textareas and a counter to keep track which is active
-    let mut which = 0;
+    //set the active and inactive textareas and a counter to keep track which_editor is active
+    let mut which_editor = 0;
     active(&mut editors[0]);
     inactive(&mut editors[1]);
 
     let mut state = ListState::default();
-    let mut list_item = files.len()-1;
-    state.select(Some(files.len()-1));
+    let mut list_item = list_of_files.len()-1;
+    state.select(Some(list_of_files.len()-1));
 
     //some basic configuration
     editors[0].set_selection_style(Style::default().bg(Color::LightBlue));
@@ -134,8 +135,8 @@ fn main() -> Result<()> {
         .borders(Borders::ALL)
         .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
         );
-    editors[1].set_block(Block::default().borders(Borders::ALL));
-
+    editors[1].set_block(Block::default().borders(Borders::ALL).title("Message window").title_alignment(Alignment::Center));
+    editors[1].set_cursor_style(Style::default().hidden());
     //main loop that the program runs
     loop {
         terminal.draw(|frame| {
@@ -143,7 +144,7 @@ fn main() -> Result<()> {
             //setting up things for the basic layout of it all
             let area = frame.size();
 
-            let list2 = List::new(files.clone())
+            let list = List::new(list_of_files.clone())
                 .block(Block::default().title("List").borders(Borders::ALL).title_alignment(Alignment::Center))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">>")
@@ -169,14 +170,14 @@ fn main() -> Result<()> {
             let weird_border = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints(vec![
-                             Constraint::Percentage(90),
                              Constraint::Percentage(10),
+                             Constraint::Percentage(90),
                 ])
                 .split(inner_border[0]);
 
 
             //Rendering the frames of the program
-            frame.render_widget(editors[1].widget(), weird_border[1]);
+            frame.render_widget(editors[1].widget(), weird_border[0]);
             frame.render_widget(editors[0].widget(), inner_border[1]);
             frame.render_widget(Paragraph::new(format!("{}", message))
                 .wrap(Wrap { trim: (true) })
@@ -186,7 +187,7 @@ fn main() -> Result<()> {
                     .title_alignment(Alignment::Center)
                     .borders(Borders::ALL)), outer_border[0]);
 
-            frame.render_stateful_widget(list2, weird_border[0], &mut state)
+            frame.render_stateful_widget(list, weird_border[1], &mut state)
         })?;
 
         //Apon pressing escape, close the program and write to the file
@@ -198,11 +199,11 @@ fn main() -> Result<()> {
                     ..
                 } => {
                     {
-                        if Path::new(&file_string).exists(){
-                            save(&file_string, editors[0].lines().to_vec())?;
+                        if Path::new(&current_file_path).exists(){
+                            save(&current_file_path, editors[0].lines().to_vec())?;
                         }
                         else {
-                            let f = File::create(&file_string)?;
+                            let f = File::create(&current_file_path)?;
                             let mut writer = LineWriter::new(f);
                             for line in editors[0].lines(){
                                 if line == "" {
@@ -213,7 +214,8 @@ fn main() -> Result<()> {
                             }
                         }
                     }
-                    break;
+                    editors[1].delete_line_by_head();
+                    editors[1].insert_str("SAVED!");
                 },
                 Input{
                     key: Key::Up,
@@ -232,7 +234,7 @@ fn main() -> Result<()> {
                     ..
                 } => {
                     list_item += 1;
-                    if list_item >= files.len() {
+                    if list_item >= list_of_files.len() {
                         list_item -= 1;
                     }
                     state.select(Some(list_item))
@@ -249,28 +251,7 @@ fn main() -> Result<()> {
                     key: Key::Enter,
                     ..
                 } => {
-                    if (which+1)%2 == 1 {
                         editors[0].insert_newline();
-                    }
-                    else {
-                        let file_name2 = file_reader(editors[1].lines()[0].clone());
-                        if file_name2 != "error".to_string() {
-                            editors[1].delete_line_by_head();
-                            which = (which+1)%2;
-                            active(&mut editors[which]);
-                            save(&file_string, editors[0].lines().to_vec())?;
-                            editors[0] = TextArea::default();
-                            set_editors_style(&mut editors[0], number);
-                            editors[0].insert_str(&file_name2);
-                        }
-                        else {
-                            active(&mut editors[0]);
-                            editors[1].delete_line_by_head();
-                            set_editors_style(&mut editors[0], number);
-                            editors[1].insert_str(&file_name2);
-                            which = (which+1)%2;
-                        }
-                    }
                 },
                 Input{
                     key: Key::Char('u'),
@@ -302,25 +283,32 @@ fn main() -> Result<()> {
                     set_editors_style(&mut editors[0], number);
                 },
                 Input{
+                    key: Key::Char('q'),
+                    ctrl: true,
+                    ..
+                } => {
+                    break;
+                },
+                Input{
                     key: Key::Char('t'),
                     ctrl: true,
                     ..
                 } => {
-                    inactive(&mut editors[which]);
-                    which = (which+1)%2;
-                    active(&mut editors[which]);
-                    editors[0].set_block(
-                        Block::default()
-                        .borders(Borders::ALL)
-                        .title(block::Title::from(format!("Logbook entry {}", &number)).alignment(Alignment::Center))
-                        );
-                    editors[1].delete_line_by_head();
+                        editors[1].delete_line_by_head();
+                        editors[1].insert_str("View Mode");
+                        let old_file = file_reader(list_of_files[list_item].clone());
+                        editors[0] = TextArea::default();
+                        set_editors_style(&mut editors[0], number);
+                        editors[0].insert_str(&old_file);
+                        current_file_name = &list_of_files[list_item];
+                        current_file_path = format!("{}/{}",&home_path, &current_file_name);
+
                 },
 
-                input => {
-                    if editors[which].input(input) {
+                    input => {
+                        if editors[0].input(input) {
+                        }
                     }
-                }
             }
         }
     }

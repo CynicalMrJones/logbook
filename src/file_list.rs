@@ -78,8 +78,8 @@ pub fn file_reader(file_to_grab: String) ->  String {
             .open(&file_path)
             .unwrap();
         let mut read_file = BufReader::new(&read_file);
-        let mut file_buf = String::new();
-        read_file.read_to_string(&mut file_buf).expect("File not found");
-        return file_buf
+        let mut contents_of_file = String::new();
+        read_file.read_to_string(&mut contents_of_file).expect("File not found");
+        return contents_of_file
     }
 }
