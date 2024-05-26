@@ -143,7 +143,7 @@ fn main() -> Result<()> {
             let area = frame.size();
 
             let list = List::new(list_of_files.clone())
-                .block(Block::default().title("List").borders(Borders::ALL).title_alignment(Alignment::Center))
+                .block(Block::default().title("All Files").borders(Borders::ALL).title_alignment(Alignment::Center))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">>")
                 .repeat_highlight_symbol(true)
