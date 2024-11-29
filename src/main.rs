@@ -56,7 +56,6 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
-    let list_of_files = file_list();
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
@@ -66,6 +65,8 @@ fn main() -> Result<()> {
         fs::create_dir(&home_path).expect("fuck");
         File::create(&settings_path)?;
     }
+
+    let mut list_of_files = file_list();
 
     //grabbing the date for the file name
     let date = Utc::now();
@@ -88,7 +89,10 @@ fn main() -> Result<()> {
     let mut reader = BufReader::new(&read_settings);
     let mut buf = String::new();
     reader.read_to_string(&mut buf)?;
-    let mut number: i32 = buf.trim().parse().unwrap();
+    let mut number: i32 = 0;
+    if !buf.is_empty(){
+        number = buf.trim().parse().unwrap();
+    }
 
     if !Path::new(&file_path).exists(){
         number += 1;
@@ -121,6 +125,10 @@ fn main() -> Result<()> {
     inactive(&mut editors[1]);
 
     let mut state = ListState::default();
+    if list_of_files.is_empty(){
+        File::create(&current_file_path).unwrap();
+        list_of_files = file_list();
+    }
     let mut list_item = list_of_files.len()-1;
     state.select(Some(list_of_files.len()-1));
 
