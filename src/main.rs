@@ -62,6 +62,9 @@ fn main() -> Result<()> {
 =======
     let list_of_files = file_list();
     file_upload();
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
     let path = UserDirs::new().unwrap();
