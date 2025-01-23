@@ -14,5 +14,6 @@ I wanted a terminal based logbook where I could jot down notes or treat it like 
 ## FAQ
 What are the quotes from?
 - They are from the greatest game ever made **Outer Wilds**
+
 Why rust?
 - It was partially a learning experience and got me use to working with crates
