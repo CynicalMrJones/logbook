@@ -8,6 +8,7 @@ use crossterm::{
     ExecutableCommand,
 };
 use file_list::{file_list, file_reader};
+use ftp::file_upload;
 use greeting::greeting;
 use ratatui::{
     layout::Constraint, prelude::{Alignment, CrosstermBackend, Direction, Layout, Style, Terminal}, style::{Modifier, Color, Styled, Stylize}, widgets::{block, Block, Borders, Paragraph, Wrap, List, ListState}
@@ -26,6 +27,7 @@ use directories::UserDirs;
 
 mod file_list;
 mod greeting;
+mod ftp;
 
 
 //This function sets the active textarea configuration 
@@ -56,6 +58,11 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
+<<<<<<< Updated upstream
+=======
+    let list_of_files = file_list();
+    file_upload();
+>>>>>>> Stashed changes
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
