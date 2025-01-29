@@ -58,14 +58,8 @@ fn set_editors_style(textarea: &mut TextArea<'_>, number: i32){
 fn main() -> Result<()> {
 
     let message = greeting();
-<<<<<<< Updated upstream
-=======
     let list_of_files = file_list();
     file_upload();
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
     let path = UserDirs::new().unwrap();
     let home_path = format!("{}/Documents/logbook", path.home_dir().to_string_lossy());
